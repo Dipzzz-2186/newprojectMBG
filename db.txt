@@ -1,0 +1,104 @@
+CREATE DATABASE IF NOT EXISTS mbg_marketplace;
+USE mbg_marketplace;
+
+-- ========== USERS ==========
+CREATE TABLE users (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name          VARCHAR(100) NOT NULL,
+  email         VARCHAR(100) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  phone         VARCHAR(20),
+  role          ENUM('yayasan_admin', 'yayasan_staff', 'dapur', 'vendor') NOT NULL,
+  status        ENUM('active', 'inactive') DEFAULT 'active',
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ========== KITCHENS (DAPUR) ==========
+CREATE TABLE kitchens (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id       BIGINT NOT NULL,
+  name          VARCHAR(150) NOT NULL,
+  address       TEXT,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_kitchens_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- ========== VENDORS ==========
+CREATE TABLE vendors (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id       BIGINT NOT NULL,
+  name          VARCHAR(150) NOT NULL,
+  address       TEXT,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_vendors_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- ========== INGREDIENTS (BARANG VENDOR) ==========
+CREATE TABLE ingredients (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  vendor_id     BIGINT NOT NULL,
+  name          VARCHAR(150) NOT NULL,
+  category      VARCHAR(100),
+  unit          VARCHAR(20) NOT NULL,      -- kg, gram, liter, pcs
+  price         DECIMAL(14,2) NOT NULL,
+  stock         DECIMAL(12,2) DEFAULT 0,
+  status        ENUM('active','inactive') DEFAULT 'active',
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ingredients_vendor FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+);
+
+-- ========== PURCHASE ORDERS ==========
+CREATE TABLE purchase_orders (
+  id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+  kitchen_id         BIGINT NOT NULL,
+  vendor_id          BIGINT NULL,
+  foundation_user_id BIGINT NULL,
+  needed_date        DATE NOT NULL,
+  status             ENUM(
+                        'submitted_to_foundation',
+                        'rejected_by_foundation',
+                        'sent_to_vendor',
+                        'accepted_by_vendor',
+                        'rejected_by_vendor',
+                        'shipped',
+                        'completed',
+                        'cancelled'
+                      ) NOT NULL DEFAULT 'submitted_to_foundation',
+  notes              TEXT,
+  created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_po_kitchen    FOREIGN KEY (kitchen_id) REFERENCES kitchens(id),
+  CONSTRAINT fk_po_vendor     FOREIGN KEY (vendor_id)  REFERENCES vendors(id),
+  CONSTRAINT fk_po_foundation FOREIGN KEY (foundation_user_id) REFERENCES users(id)
+);
+
+-- ========== PURCHASE ORDER ITEMS ==========
+CREATE TABLE purchase_order_items (
+  id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+  purchase_order_id  BIGINT NOT NULL,
+  ingredient_id      BIGINT NOT NULL,
+  quantity           DECIMAL(12,2) NOT NULL,
+  unit               VARCHAR(20) NOT NULL,
+  estimated_price    DECIMAL(14,2) NULL,
+  created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_poi_po         FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id),
+  CONSTRAINT fk_poi_ingredient FOREIGN KEY (ingredient_id)     REFERENCES ingredients(id)
+);
+
+-- ========== ORDER STATUS LOGS ==========
+CREATE TABLE order_status_logs (
+  id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+  purchase_order_id  BIGINT NOT NULL,
+  from_status        VARCHAR(50),
+  to_status          VARCHAR(50),
+  changed_by         BIGINT NOT NULL,
+  note               TEXT,
+  changed_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_osl_po   FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id),
+  CONSTRAINT fk_osl_user FOREIGN KEY (changed_by)        REFERENCES users(id)
+);
