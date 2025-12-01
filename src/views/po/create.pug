@@ -1,0 +1,20 @@
+extends ../layouts/main
+
+block content
+  h2 Create Purchase Order
+
+  form(action="/po/create" method="POST")
+    label Kitchen
+    select(name="kitchen_id" required)
+      each k in kitchens
+        option(value=k.id) #{k.name}
+
+    label Vendor
+    select(name="vendor_id" required)
+      each v in vendors
+        option(value=v.id) #{v.name}
+
+    label Items
+    textarea(name="items" placeholder="Example: Beras 10kg, Ayam 5kg" required)
+
+    button.btn(type="submit") Create PO

@@ -1,0 +1,24 @@
+extends ../layouts/main
+
+block content
+  h2 Purchase Orders
+
+  a.btn(href="/po/create") + Create PO
+
+  table.table
+    thead
+      tr
+        th ID
+        th Kitchen
+        th Vendor
+        th Status
+        th Actions
+    tbody
+      each po in poList
+        tr
+          td #{po.id}
+          td #{po.kitchen_name}
+          td #{po.vendor_name}
+          td #{po.status}
+          td
+            a(href=`/po/${po.id}`) View

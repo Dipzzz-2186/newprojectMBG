@@ -1,0 +1,17 @@
+extends ../layouts/main
+
+block content
+  h2 Vendor List
+
+  table.table
+    thead
+      tr
+        th ID
+        th Name
+        th Contact
+    tbody
+      each v in vendors
+        tr
+          td #{v.id}
+          td #{v.name}
+          td #{v.phone}

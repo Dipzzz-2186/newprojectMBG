@@ -1,0 +1,10 @@
+nav.navbar
+  .nav-left
+    a(href="/dashboard") MBG Market
+
+  .nav-right
+    if user
+      span Hello, #{user.username}
+      a(href="/logout") Logout
+    else
+      a(href="/login") Login

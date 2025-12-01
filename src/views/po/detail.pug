@@ -1,0 +1,23 @@
+extends ../layouts/main
+
+block content
+  h2 Purchase Order ##{po.id}
+
+  p Kitchen: #{po.kitchen_name}
+  p Vendor: #{po.vendor_name}
+  p Status: #{po.status}
+
+  h3 Items:
+  ul
+    each item in po.items
+      li #{item}
+
+  if po.status !== 'FINISHED'
+    form(action=`/po/${po.id}/update-status` method="POST")
+      label Update Status
+      select(name="status")
+        option(value="PENDING") PENDING
+        option(value="APPROVED") APPROVED
+        option(value="DELIVERED") DELIVERED
+        option(value="FINISHED") FINISHED
+      button.btn(type="submit") Update
