@@ -1,36 +1,33 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 
-// middleware global
 app.use(cors());
 app.use(express.json());
 
-// IMPORT ROUTES (PASTIKAN PATHNYA SAMA)
+// ====== STATIC FRONTEND ======
+const publicPath = path.join(__dirname, "..", "public");
+app.use(express.static(publicPath));
+
+// ====== API ROUTES ======
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const ingredientRoutes = require("./routes/ingredient.routes");
 const poRoutes = require("./routes/po.routes");
 const deliveryRoutes = require("./routes/delivery.routes");
 
-// UNTUK DEBUG: CEK TIPE ROUTE
-console.log("authRoutes type:", typeof authRoutes);
-console.log("userRoutes type:", typeof userRoutes);
-console.log("ingredientRoutes type:", typeof ingredientRoutes);
-console.log("poRoutes type:", typeof poRoutes);
-console.log("deliveryRoutes type:", typeof deliveryRoutes);
-
-// REGISTER ROUTES
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/ingredients", ingredientRoutes);
 app.use("/po", poRoutes);
 app.use("/delivery", deliveryRoutes);
 
-app.get("/", (req, res) => {
-  res.json({ message: "MBG Marketplace API OK" });
-});
+// (optional) root path kalau mau selalu kirim index.html
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(publicPath, "index.html"));
+// });
 
 module.exports = app;
